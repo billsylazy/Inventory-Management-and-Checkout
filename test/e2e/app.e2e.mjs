@@ -464,6 +464,8 @@ describe('media lab app in a real browser', () => {
     assert.match(tempPassword, /^\w+-\d{4}-\w+$/);
     await modalButton(teacher, 'Close').click();
     process.env.E2E_ROBIN_PASSWORD = tempPassword;
+    const robin = (await api(teacher, '/users?q=rortiz')).users[0];
+    assert.deepEqual([robin.name, robin.student_id], ['Robin Ortiz', 'S20001']);
 
     await button(teacher, 'Import CSV').click();
     await modal(teacher).locator('textarea').first().fill('name,username,student_id\nAda Lovelace,ada,S20002\nBroken Row,,\n');

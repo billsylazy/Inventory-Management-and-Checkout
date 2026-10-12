@@ -83,8 +83,11 @@ Also included: bookings with conflict checks and pickup windows, staff dashboard
 
 ```bash
 npm run dev     # demo data, restarts on file changes
-npm test        # API tests (node:test)
+npm test        # API tests (node:test): ~100 tests, a few seconds
+npm run test:e2e
 ```
+
+`npm run test:e2e` drives the real app in Chromium against fresh demo data: every screen and button for staff and students, phone and desktop layouts, plus **camera scanning** using a fake webcam that shows QR and Code 128 labels (over HTTP and HTTPS). The first time, install the browser with `npx playwright install chromium`. It takes about two minutes, and on any failure it saves screenshots to your temp folder (`inventory-e2e-failures`).
 
 ```
 server/
@@ -100,6 +103,7 @@ public/               single-page app (plain ES modules, no build step)
   js/scanner.js       camera + USB scanner input
   js/signature.js     signature pad
 test/                 API tests
+test/e2e/             browser and camera tests (Playwright)
 ```
 
 Configuration (environment variables): `PORT` (3000), `HOST`, `DATA_DIR`, `DB_PATH`, `UPLOADS_DIR`, `ADMIN_PASSWORD`, `HTTPS=1` (same as `--https`), `HTTPS_PORT` (3443), `TLS_CERT`, `TLS_KEY`, `TRUST_PROXY` (number of proxy hops, e.g. `1`).

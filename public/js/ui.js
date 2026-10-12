@@ -312,7 +312,12 @@ export function openModal({ title, body, actions = [], onClose, wide = false }) 
   const backdrop = h('div', { class: 'modal-backdrop', onclick: (e) => { if (e.target === backdrop) close(); } }, modal);
   document.body.append(backdrop);
   document.addEventListener('keydown', onKey);
-  setTimeout(() => (modal.querySelector('input, select, textarea') ?? modal.querySelector('.modal-actions .btn-primary'))?.focus(), 30);
+  // Focus the first field, unless the user (or a barcode scanner) is already
+  // typing somewhere in the dialog.
+  setTimeout(() => {
+    if (modal.contains(document.activeElement)) return;
+    (modal.querySelector('input, select, textarea') ?? modal.querySelector('.modal-actions .btn-primary'))?.focus();
+  }, 30);
   return { close, modal };
 }
 
