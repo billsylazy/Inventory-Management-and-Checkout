@@ -45,7 +45,11 @@ export function expandEntries(ctx, entries) {
     if (entry.type === 'kit') {
       const kit = db.get('SELECT * FROM kits WHERE id = ?', [id]);
       if (!kit) throw notFound('Kit not found');
-      const items = db.all('SELECT * FROM assets WHERE kit_id = ? ORDER BY tag', [kit.id]);
+      const items = db.all(
+        `SELECT a.* FROM assets a LEFT JOIN categories c ON c.name = a.category
+         WHERE a.kit_id = ? ORDER BY COALESCE(c.sort, 999), a.tag`,
+        [kit.id],
+      );
       if (items.length === 0) throw badRequest(`Kit ${kit.tag} has no items`);
       for (const asset of items) add(asset, 'kit', kit, null);
     } else if (entry.type === 'asset') {

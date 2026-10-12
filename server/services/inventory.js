@@ -203,7 +203,11 @@ export function kitStatus(items) {
 }
 
 export function kitWithItems(ctx, viewer, kit, sc = statusContext(ctx, viewer)) {
-  const rows = ctx.db.all('SELECT * FROM assets WHERE kit_id = ? ORDER BY tag', [kit.id]);
+  const rows = ctx.db.all(
+    `SELECT a.* FROM assets a LEFT JOIN categories c ON c.name = a.category
+     WHERE a.kit_id = ? ORDER BY COALESCE(c.sort, 999), a.tag`,
+    [kit.id],
+  );
   const items = serializeAssets(ctx, viewer, rows, sc);
   return {
     id: kit.id,
@@ -232,14 +236,14 @@ function tagSet(tags) {
  * For a main item only accessories are suggested; for an accessory we list
  * everything else it shares a tag with (bodies, chargers...).
  */
-export function compatibleAssets(ctx, asset, { includeRetired = false } = {}) {
+export function compatibleAssets(ctx, asset, { includeInactive = false } = {}) {
   const { db } = ctx;
   const categories = categoryMap(db);
   const compat = compatTagsFor(db);
   const sourceTags = tagSet(compat.get(asset.id));
   const sourceKind = categoryKind(categories, asset.category);
   const rows = db.all(
-    `SELECT * FROM assets WHERE id != ? AND category != ? ${includeRetired ? '' : "AND state != 'retired'"} ORDER BY category, name, tag`,
+    `SELECT * FROM assets WHERE id != ? AND category != ? ${includeInactive ? '' : "AND state NOT IN ('retired', 'lost')"}`,
     [asset.id, asset.category],
   );
   const matches = [];
@@ -253,5 +257,13 @@ export function compatibleAssets(ctx, asset, { includeRetired = false } = {}) {
       matches.push({ row, reason: shared.length ? shared : ['universal'] });
     }
   }
+  // Specific matches (a lens for this mount) before universal ones (tripods),
+  // then in category order, usable items first.
+  const sortOf = (row) => categories.get(row.category.toLowerCase())?.sort ?? 999;
+  matches.sort((a, b) => (a.reason[0] === 'universal') - (b.reason[0] === 'universal')
+    || sortOf(a.row) - sortOf(b.row)
+    || (a.row.state !== 'active') - (b.row.state !== 'active')
+    || a.row.name.localeCompare(b.row.name)
+    || a.row.tag.localeCompare(b.row.tag));
   return matches;
 }

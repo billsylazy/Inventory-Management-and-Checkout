@@ -167,7 +167,8 @@ export function seedDemo(ctx) {
 
       const ids = {};
       for (const a of ASSETS) {
-        const { parent, ...fields } = a;
+        const fields = { ...a };
+        delete fields.parent;
         ids[a.tag] = createAsset(ctx, teacher, { ...fields, requires_signature: a.tag === 'MIC-002' });
       }
       for (const a of ASSETS.filter((x) => x.parent)) {
@@ -199,7 +200,18 @@ export function seedDemo(ctx) {
         [{ type: 'asset', id: ids['MIC-002'] }, { type: 'asset', id: ids['BAG-003'] }],
         [{ type: 'asset', id: ids['LENS-004'] }, { type: 'asset', id: ids['BAT-004'] }],
       ];
-      const damageNotes = ['Scratch on the rear screen', 'Battery door latch broken', 'Lens cap missing, front element smudged', 'Cracked housing', 'Leg clamp snapped', 'Frayed cable', 'Dent on the barrel', 'Strap ring bent'];
+      const damageNotes = {
+        'Camera Body': ['Scratch on the rear screen', 'Battery door latch broken', 'Strap ring bent'],
+        Camcorder: ['Flip screen hinge loose', 'Scratch on the rear screen'],
+        Lens: ['Lens cap missing, front element smudged', 'Dent on the barrel', 'Zoom ring sticks'],
+        Battery: ['Swollen casing', 'Contacts corroded', 'Won’t hold a charge'],
+        Charger: ['Frayed cable', 'Cracked housing'],
+        'Memory Card': ['Write-protect switch broken', 'Card is cracked', 'Card shows errors in camera'],
+        Tripod: ['Leg clamp snapped', 'Quick-release plate missing'],
+        Microphone: ['Windscreen torn', 'Frayed cable'],
+        Lighting: ['Diffuser cracked', 'Mounting screw stripped'],
+        Bag: ['Zipper broken', 'Strap ring bent'],
+      };
       const signatureFor = (borrower) => ({ signer_name: borrower.name, signer_role: 'student', image: demoSignaturePng(borrower.id) });
 
       let t = addDays(now, -200);
@@ -232,7 +244,7 @@ export function seedDemo(ctx) {
           const condition = roll < 0.07 ? 'damaged' : roll < 0.25 ? 'fair' : 'excellent';
           items.push({
             loan_item_id: item.id, condition, confirmation: rand() < 0.85 ? 'scan' : 'manual',
-            notes: condition === 'damaged' ? pick(damageNotes) : condition === 'fair' && rand() < 0.4 ? 'Minor scuffs' : null,
+            notes: condition === 'damaged' ? pick(damageNotes[item.asset.category] ?? ['Damaged']) : condition === 'fair' && rand() < 0.4 ? 'Minor scuffs' : null,
           });
         }
         if (items.length) processReturn(ctx, teacher, { items });

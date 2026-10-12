@@ -124,7 +124,6 @@ export function createApp(ctx, { trustProxy = 'loopback' } = {}) {
     res.sendFile(path.join(ROOT, 'public', 'index.html'));
   });
 
-  // eslint-disable-next-line no-unused-vars
   app.use((err, req, res, _next) => {
     if (err instanceof HttpError) {
       return res.status(err.status).json({ error: err.message, ...err.extra });

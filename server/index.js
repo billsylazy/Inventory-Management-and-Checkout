@@ -18,7 +18,10 @@ const port = Number(env.PORT ?? 3000);
 const host = env.HOST ?? '0.0.0.0';
 
 const ctx = createContext({ dbPath, uploadsDir });
-const app = createApp(ctx, { trustProxy: env.TRUST_PROXY ?? 'loopback' });
+const trustProxy = env.TRUST_PROXY === undefined ? 'loopback'
+  : /^\d+$/.test(env.TRUST_PROXY) ? Number(env.TRUST_PROXY)
+    : env.TRUST_PROXY === 'true' ? true : env.TRUST_PROXY;
+const app = createApp(ctx, { trustProxy });
 
 if (demo) {
   const seeded = seedDemo(ctx);
@@ -49,9 +52,9 @@ http.createServer(app).listen(port, host, () => {
 });
 
 // Phone cameras only work on secure (https) pages, except on localhost.
-// HTTPS=1 serves a second port with a self-signed certificate (or your own
-// via TLS_CERT / TLS_KEY) so phones on the school Wi-Fi can scan barcodes.
-if (env.HTTPS === '1' || env.TLS_CERT) {
+// HTTPS=1 (or --https) serves a second port with a self-signed certificate
+// (or your own via TLS_CERT / TLS_KEY) so phones on the school Wi-Fi can scan.
+if (env.HTTPS === '1' || env.TLS_CERT || process.argv.includes('--https')) {
   const httpsPort = Number(env.HTTPS_PORT ?? 3443);
   let key;
   let cert;

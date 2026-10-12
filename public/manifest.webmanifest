@@ -1,0 +1,9 @@
+{
+  "name": "Equipment Checkout",
+  "short_name": "Checkout",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f4f6f9",
+  "theme_color": "#2f5bd8",
+  "icons": [{ "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml" }]
+}
