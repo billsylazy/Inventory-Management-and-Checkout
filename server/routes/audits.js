@@ -17,7 +17,7 @@ import { badRequest, bool, conflict, notFound, str } from '../util.js';
 export function auditRoutes(ctx) {
   const router = express.Router();
   const { db } = ctx;
-  router.use(requireAdmin);
+  router.use('/audits', requireAdmin);
 
   const getAudit = (id) => {
     const audit = db.get(

@@ -15,7 +15,9 @@ export function authRoutes(ctx) {
     const password = typeof req.body?.password === 'string' ? req.body.password : '';
     const key = `${req.ip}|${username.toLowerCase()}`;
     limiter.check(key);
-    const user = ctx.db.get('SELECT * FROM users WHERE username = ? AND active = 1', [username]);
+    // Students can sign in with their username or the ID on their card.
+    const user = ctx.db.get('SELECT * FROM users WHERE username = ? AND active = 1', [username])
+      ?? ctx.db.get('SELECT * FROM users WHERE student_id = ? AND active = 1', [username]);
     if (!user || !verifyPassword(password, user.password_hash)) {
       limiter.fail(key);
       throw new HttpError(401, 'Wrong username or password');

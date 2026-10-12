@@ -18,7 +18,7 @@ function tempPassword() {
 export function userRoutes(ctx) {
   const router = express.Router();
   const { db } = ctx;
-  router.use(requireAdmin);
+  router.use(['/users', '/fines'], requireAdmin);
 
   const getUser = (id) => {
     const user = db.get('SELECT * FROM users WHERE id = ?', [Number(id)]);

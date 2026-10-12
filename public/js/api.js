@@ -20,11 +20,16 @@ async function request(method, path, body) {
     headers: body !== undefined ? { 'content-type': 'application/json' } : {},
     body: body !== undefined ? JSON.stringify(body) : undefined,
   });
+  // Reading the body can fail if the connection drops mid-way; let that
+  // surface as an error rather than pretending we got an empty answer.
+  const text = await res.text();
   let data = null;
-  try {
-    data = await res.json();
-  } catch {
-    data = null;
+  if (text) {
+    try {
+      data = JSON.parse(text);
+    } catch {
+      if (res.ok) throw new ApiError('The server sent an unexpected response. Please try again.', res.status, null);
+    }
   }
   if (!res.ok) {
     if (res.status === 401 && !path.startsWith('/auth/')) onUnauthorized();

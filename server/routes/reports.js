@@ -25,7 +25,7 @@ function monthsBetween(fromIso, toIso) {
 export function reportRoutes(ctx) {
   const router = express.Router();
   const { db } = ctx;
-  router.use(requireAdmin);
+  router.use('/reports', requireAdmin);
 
   function range(query) {
     const now = ctx.now().toISOString();

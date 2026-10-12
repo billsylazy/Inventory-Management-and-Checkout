@@ -75,6 +75,12 @@ export function createApp(ctx, { trustProxy = 'loopback' } = {}) {
     next();
   });
 
+  // API responses hold private, fast-changing data: never cache them
+  // (shared Chromebooks in particular).
+  app.use('/api', (_req, res, next) => {
+    res.set('Cache-Control', 'no-store');
+    next();
+  });
   app.use('/api', express.json({ limit: '15mb' }));
   // CSRF defence: state-changing API calls must be JSON, which a cross-site
   // form cannot send without a CORS preflight (and we never allow CORS).

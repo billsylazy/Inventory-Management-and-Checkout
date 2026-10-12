@@ -57,7 +57,7 @@ export function setCompatTags(db, assetId, tags) {
   const unique = new Map();
   for (const t of tags) {
     const n = normalizeCompatTag(t);
-    if (n) unique.set(n.toLowerCase(), n);
+    if (n && !unique.has(n.toLowerCase())) unique.set(n.toLowerCase(), n);
   }
   db.run('DELETE FROM asset_compat WHERE asset_id = ?', [assetId]);
   for (const tag of unique.values()) db.run('INSERT INTO asset_compat (asset_id, tag) VALUES (?, ?)', [assetId, tag]);

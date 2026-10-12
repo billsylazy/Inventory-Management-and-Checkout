@@ -230,7 +230,11 @@ export function banner(kind, content, iconName) {
 }
 
 export function field(label, control, hint) {
-  return h('label', { class: 'field' }, h('span', { class: 'label' }, label), control, hint ? h('span', { class: 'hint' }, hint) : null);
+  const parts = [h('span', { class: 'label' }, label), control, hint ? h('span', { class: 'hint' }, hint) : null];
+  // A <label> would name only the first button of a button group, so groups
+  // get role="group" with their own accessible name instead.
+  if (control.classList?.contains('seg')) return h('div', { class: 'field', role: 'group', 'aria-label': label }, parts);
+  return h('label', { class: 'field' }, parts);
 }
 
 export function segmented(options, value, onChange) {

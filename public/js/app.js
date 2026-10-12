@@ -45,6 +45,9 @@ let cleanups = [];
 let renderToken = 0;
 let lastPath = null;
 let shell = null;
+let leavingPage = false;
+window.addEventListener('beforeunload', () => { leavingPage = true; });
+window.addEventListener('pagehide', () => { leavingPage = true; });
 
 // Handed to every view.
 export const app = {
@@ -190,6 +193,12 @@ function highlightNav(path) {
 // ---------------------------------------------------------------------------
 // Rendering
 
+/** Marks render progress on <html> (data-state / data-renders), used by the browser tests. */
+function markRender(stateName) {
+  document.documentElement.dataset.state = stateName;
+  if (stateName !== 'loading') document.documentElement.dataset.renders = String(renderToken);
+}
+
 async function render() {
   closeActiveScanner();
   for (const fn of cleanups.splice(0)) {
@@ -205,26 +214,31 @@ async function render() {
   highlightNav(path);
   const matched = matchRoute(path);
   const token = ++renderToken;
+  markRender('loading');
   if (path !== lastPath) window.scrollTo(0, 0);
   lastPath = path;
   if (!matched) {
     clear(shell.view, h('div', { class: 'page' }, banner('warning', 'That page does not exist.'), h('p', { style: { marginTop: '12px' } }, h('a', { href: '#/' }, 'Back to equipment'))));
-    return;
+    return markRender('ready');
   }
   if (matched.route.admin && !app.isAdmin) {
     clear(shell.view, h('div', { class: 'page' }, banner('danger', 'Only teachers and admins can open this page.')));
-    return;
+    return markRender('ready');
   }
   clear(shell.view, loading());
   try {
     const node = await matched.route.view({ params: matched.params, query, app });
-    if (token !== renderToken) return;
+    if (token !== renderToken || !shell) return;
     clear(shell.view, node);
+    markRender('ready');
   } catch (err) {
-    if (token !== renderToken) return;
+    // A 401 already sent us back to the sign-in screen; requests cut off by
+    // leaving the page are not worth reporting.
+    if (token !== renderToken || !shell || err.status === 401 || leavingPage) return;
     console.error(err);
     clear(shell.view, h('div', { class: 'page' }, banner('danger', err.message || 'Something went wrong'),
       h('div', { style: { marginTop: '12px' } }, btn('Try again', { iconName: 'history', onClick: () => render() }))));
+    markRender('error');
   }
 }
 
