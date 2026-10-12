@@ -1,0 +1,22 @@
+{
+  "name": "inventory-management-and-checkout",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Equipment inventory and checkout web app for school media labs: barcode/QR scanning, kits, parent-child assets, signatures, condition logging, audits and loss/damage analytics.",
+  "type": "module",
+  "engines": {
+    "node": ">=22.13"
+  },
+  "scripts": {
+    "start": "node --disable-warning=ExperimentalWarning server/index.js",
+    "demo": "node --disable-warning=ExperimentalWarning server/index.js --demo",
+    "dev": "node --disable-warning=ExperimentalWarning --watch server/index.js --demo",
+    "test": "node --disable-warning=ExperimentalWarning --test \"test/*.test.js\""
+  },
+  "dependencies": {
+    "express": "^5.3.0",
+    "html5-qrcode": "^2.3.8",
+    "qrcode": "^1.5.4",
+    "selfsigned": "^5.5.0"
+  }
+}
