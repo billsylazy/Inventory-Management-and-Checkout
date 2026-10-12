@@ -34,6 +34,7 @@ function hideTip() {
 }
 function hoverable(el, head, rows) {
   el.tabIndex = 0;
+  el.setAttribute('role', 'img');
   el.setAttribute('aria-label', `${head}: ${rows.map((r) => `${r.value} ${r.label}`).join(', ')}`);
   const show = () => showTip(el, head, rows);
   el.addEventListener('pointerenter', show);

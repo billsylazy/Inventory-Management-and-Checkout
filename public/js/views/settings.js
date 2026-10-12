@@ -54,9 +54,9 @@ export async function settingsView({ app }) {
   const categoriesBox = h('div');
   const renderCategories = async () => {
     const cats = await app.loadCategories();
-    const name = h('input', { class: 'input', placeholder: 'New category, e.g. Drone' });
-    const kind = h('select', { class: 'select', style: { width: 'auto' } }, h('option', { value: 'accessory' }, 'Accessory'), h('option', { value: 'main' }, 'Main item'));
-    const iconSel = h('select', { class: 'select', style: { width: 'auto' } }, icons.map((i) => h('option', { value: i }, i)));
+    const name = h('input', { class: 'input', placeholder: 'New category, e.g. Drone', 'aria-label': 'New category name' });
+    const kind = h('select', { class: 'select', style: { width: 'auto' }, 'aria-label': 'New category type' }, h('option', { value: 'accessory' }, 'Accessory'), h('option', { value: 'main' }, 'Main item'));
+    const iconSel = h('select', { class: 'select', style: { width: 'auto' }, 'aria-label': 'New category icon' }, icons.map((i) => h('option', { value: i }, i)));
     clear(categoriesBox,
       h('div', { class: 'table-wrap' }, h('table', { class: 'table' },
         h('thead', null, h('tr', null, h('th', null, ''), h('th', null, 'Category'), h('th', null, 'Type'), h('th', null, 'Icon'), h('th', null, ''))),
@@ -64,11 +64,11 @@ export async function settingsView({ app }) {
           h('td', null, icon(c.icon)),
           h('td', null, c.name),
           h('td', null, h('select', {
-            class: 'select', style: { width: 'auto', minHeight: '36px' },
+            class: 'select', style: { width: 'auto', minHeight: '36px' }, 'aria-label': `Type for ${c.name}`,
             onchange: async (e) => { await api.patch(`/categories/${encodeURIComponent(c.name)}`, { kind: e.target.value }); toast('Saved', 'success'); },
           }, h('option', { value: 'main', selected: c.kind === 'main' }, 'Main item'), h('option', { value: 'accessory', selected: c.kind === 'accessory' }, 'Accessory'))),
           h('td', null, h('select', {
-            class: 'select', style: { width: 'auto', minHeight: '36px' },
+            class: 'select', style: { width: 'auto', minHeight: '36px' }, 'aria-label': `Icon for ${c.name}`,
             onchange: async (e) => { await api.patch(`/categories/${encodeURIComponent(c.name)}`, { icon: e.target.value }); toast('Saved', 'success'); renderCategories(); },
           }, icons.map((i) => h('option', { value: i, selected: c.icon === i }, i)))),
           h('td', null, h('button', {

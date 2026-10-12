@@ -37,7 +37,7 @@ export async function labelsView({ query, app }) {
   };
 
   const filterSel = h('select', {
-    class: 'select', style: { width: 'auto' },
+    class: 'select', style: { width: 'auto' }, 'aria-label': 'Show labels for',
     onchange: (e) => { filter = e.target.value; renderList(); },
   }, h('option', { value: '' }, 'Everything'), h('option', { value: 'Kits' }, 'Kits only'),
   h('optgroup', { label: 'Location' }, locations.map((l) => h('option', { value: l.location }, l.location))),

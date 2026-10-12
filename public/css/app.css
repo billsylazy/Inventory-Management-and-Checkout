@@ -7,8 +7,8 @@
   --surface: #ffffff;
   --surface-2: #f8f9fb;
   --text: #161b26;
-  --muted: #5d6677;
-  --faint: #8a93a3;
+  --muted: #525b6b;
+  --faint: #646d7e;
   --border: #e2e6ec;
   --border-strong: #cdd3dc;
   --primary: #2f5bd8;
@@ -53,7 +53,7 @@
     --surface-2: #1d232e;
     --text: #e8ebf1;
     --muted: #a2abba;
-    --faint: #7a8496;
+    --faint: #8e98aa;
     --border: #2a313d;
     --border-strong: #3a4250;
     --primary: #6d8ff0;
@@ -342,7 +342,8 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .asset-card .extra.danger { color: var(--out); font-weight: 600; }
 .asset-card .card-action { position: absolute; top: 6px; right: 6px; }
 .asset-card.selected { outline: 3px solid var(--primary); outline-offset: -1px; }
-.asset-card.dim { opacity: 0.55; }
+.asset-card.dim { background: var(--surface-2); }
+.asset-card.dim .thumb { opacity: 0.45; }
 
 .thumb { position: relative; aspect-ratio: 4 / 3; background: var(--surface-2); overflow: hidden; }
 .thumb img { width: 100%; height: 100%; object-fit: cover; }
@@ -563,6 +564,7 @@ table.table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
 .timeline li.t-audit::after { border-color: var(--primary); }
 .timeline li.t-attached::after, .timeline li.t-detached::after, .timeline li.t-kit::after { border-color: var(--res-dot); }
 .timeline .when { font-size: 0.78rem; color: var(--faint); }
+.timeline .when a { text-decoration: underline; }
 .timeline img { margin-top: 6px; width: 120px; height: 90px; object-fit: cover; border-radius: 8px; border: 1px solid var(--border); }
 .action-bar { display: flex; gap: 8px; flex-wrap: wrap; }
 
