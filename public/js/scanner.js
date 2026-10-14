@@ -1,4 +1,4 @@
-import { h, icon, iconBtn, feedback, btn, clear } from './ui.js';
+import { h, icon, iconBtn, feedback, btn, clear, focusIfIdle } from './ui.js';
 
 // ---------------------------------------------------------------------------
 // Barcode / QR scanning.
@@ -164,14 +164,15 @@ export function scanField({
       const outcome = await onScan(code);
       if (outcome) feedback(outcome.ok !== false);
     } finally {
-      if (!isTouch()) input.focus();
+      // Ready for the next scan, unless the user has moved on to another field.
+      if (!isTouch()) focusIfIdle(input, { within: form });
     }
   };
   const form = h('form', { class: 'scan-field', onsubmit: submit },
     btn(isTouch() ? 'Scan' : 'Camera', { variant: 'primary', iconName: 'scan', onClick: () => openCameraScanner({ title, onScan, continuous, hint }) }),
     input,
     btn(buttonLabel, { type: 'submit' }));
-  if (autofocus && !isTouch()) setTimeout(() => input.focus(), 50);
+  if (autofocus && !isTouch()) setTimeout(() => focusIfIdle(input), 50);
   form.focusInput = () => input.focus();
   return form;
 }

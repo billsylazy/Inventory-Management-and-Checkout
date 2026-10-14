@@ -38,9 +38,55 @@ Browsers only allow the camera on secure (`https://`) pages, or on `localhost`. 
 npm run start:https          # or: npm run demo:https
 ```
 
-The terminal prints an `https://<your-ip>:3443` address. The first time, phones show a certificate warning for the self-signed certificate; choose "Advanced → Proceed". To use a real certificate instead, set `TLS_CERT` and `TLS_KEY` to the file paths. Hosting behind any HTTPS service (Render, Railway, a school server with a certificate) also works; set `TRUST_PROXY=1` there.
+The terminal prints an `https://<your-ip>:3443` address. The first time, phones show a certificate warning for the self-signed certificate; choose "Advanced → Proceed". To use a real certificate instead, set `TLS_CERT` and `TLS_KEY` to the file paths. On a website (see below) none of this is needed: the host provides HTTPS.
 
 USB and Bluetooth barcode scanners work everywhere with no setup: they type the code into the scan box and press Enter.
+
+## Put it on a website
+
+The app needs a host that **runs a Node.js server and keeps files** (the database and photos). Static-only hosts such as GitHub Pages, Netlify or Google Sites won't work. Hosted websites get an `https://` address automatically, so phone cameras just work.
+
+> **Student data:** names, student IDs and loan history will live on that server. Check with your district/IT before using an outside host; many districts only allow approved vendors for student records. Option 2 keeps everything on a school computer.
+
+### Option 1: Render (easiest, about $7/month)
+
+1. Make sure the code is on GitHub (this repository).
+2. Sign up at [render.com](https://render.com) with your GitHub account.
+3. Click **New → Blueprint** and pick this repository and branch. Render reads [`render.yaml`](render.yaml): a web service plus a 1 GB disk for the data.
+4. When asked for **`ADMIN_PASSWORD`**, type a strong password, then click **Apply**.
+5. When the build finishes (a few minutes), open the `https://….onrender.com` address Render shows you and sign in as **`admin`** with that password.
+
+Every push to that branch redeploys automatically, and your data stays on the disk. A disk needs a paid instance (Starter, about $7/month plus a few cents for the disk; check Render's pricing page). You can add your own domain under the service's **Settings → Custom Domains**.
+
+**Free demo first?** Create a **New → Web Service** from the repository instead, with build command `npm ci --omit=dev`, start command `npm start`, instance type **Free**, and environment variables `DEMO=1` and `NODE_VERSION=22`. Free services have no disk: the site resets to the sample data whenever Render restarts it, and it sleeps when idle (the first visit takes about a minute). That's fine for showing people, but not for real use.
+
+### Option 2: a school computer plus a free Cloudflare Tunnel (data stays at school)
+
+1. On a computer that stays switched on, install Node.js 22, then run `npm install` and `npm start`.
+2. Install Cloudflare's free [`cloudflared`](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/downloads/) tool and run:
+
+   ```bash
+   cloudflared tunnel --url http://localhost:3000
+   ```
+
+   It prints an `https://….trycloudflare.com` address that works from any phone or Chromebook.
+3. That quick address changes every time you restart it. For a permanent address, set up a named Cloudflare Tunnel on your own domain, or ask school IT to publish it on the school's domain. School networks sometimes block tunnels, so check with IT.
+
+### Option 3: any host that runs Docker (Railway, Fly.io, a school server)
+
+```bash
+docker build -t equipment-checkout .
+docker run -d -p 3000:3000 -v equipment-data:/data -e ADMIN_PASSWORD=choose-one equipment-checkout
+```
+
+On a hosting platform, point it at this repository's [`Dockerfile`](Dockerfile), attach a volume at `/data`, and set `ADMIN_PASSWORD` and `TRUST_PROXY=1`.
+
+### Once it's online
+
+- `ADMIN_PASSWORD` is only used the very first time, while there is no admin yet. After that, change passwords inside the app.
+- **Back up** from **Settings → Download backup**: one file with all items, people, loans and history (photos are stored separately). Do it regularly. To restore, stop the app, replace `inventory.db` in the data folder with the backup, and delete any `inventory.db-wal` / `inventory.db-shm` files next to it.
+- The demo accounts (`teacher` / `demo1234` and so on) only exist in demo mode. A real site starts with just your admin account.
+- Hosting settings: `PORT` (set by most hosts), `DATA_DIR` (where the database and photos go), `ADMIN_PASSWORD`, `TRUST_PROXY=1` (behind the host's HTTPS proxy), `DEMO=1` (sample data). The health check for hosts is at `/healthz`.
 
 ## Features
 
@@ -104,6 +150,8 @@ public/               single-page app (plain ES modules, no build step)
   js/signature.js     signature pad
 test/                 API tests
 test/e2e/             browser and camera tests (Playwright)
+render.yaml           Render hosting blueprint
+Dockerfile            container image for other hosts
 ```
 
 Configuration (environment variables): `PORT` (3000), `HOST`, `DATA_DIR`, `DB_PATH`, `UPLOADS_DIR`, `ADMIN_PASSWORD`, `HTTPS=1` (same as `--https`), `HTTPS_PORT` (3443), `TLS_CERT`, `TLS_KEY`, `TRUST_PROXY` (number of proxy hops, e.g. `1`).

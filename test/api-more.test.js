@@ -592,3 +592,45 @@ describe('data survives a restart', () => {
     }
   });
 });
+
+describe('hosting: health check and backups', () => {
+  let t;
+  let admin;
+  let stu;
+  before(async () => {
+    t = await setup();
+    t.addUser('admin', 'admin');
+    t.addUser('stu');
+    admin = await t.login('admin');
+    stu = await t.login('stu');
+    await admin.post('/api/assets', { tag: 'BK-1', name: 'Backed up', category: 'Other' });
+  });
+  after(() => t.close());
+
+  test('the health check answers without signing in', async () => {
+    const res = await fetch(`${t.base}/healthz`);
+    assert.equal(res.status, 200);
+    assert.equal(await res.text(), 'ok');
+  });
+
+  test('staff can download a working copy of the database; students cannot', async () => {
+    assert.equal((await stu.get('/api/backup')).status, 403);
+    const cookie = (await fetch(`${t.base}/api/auth/login`, {
+      method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ username: 'admin', password: 'password123' }),
+    })).headers.get('set-cookie').split(';')[0];
+    const res = await fetch(`${t.base}/api/backup`, { headers: { cookie } });
+    assert.equal(res.status, 200);
+    assert.match(res.headers.get('content-disposition'), /attachment; filename="?inventory-backup-\d{4}-\d{2}-\d{2}\.db"?/);
+    const bytes = Buffer.from(await res.arrayBuffer());
+    assert.equal(bytes.subarray(0, 15).toString(), 'SQLite format 3');
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'inventory-restore-'));
+    try {
+      fs.writeFileSync(path.join(dir, 'restored.db'), bytes);
+      const restored = createContext({ dbPath: path.join(dir, 'restored.db'), uploadsDir: path.join(dir, 'up') });
+      assert.equal(restored.db.get("SELECT name FROM assets WHERE tag = 'BK-1'").name, 'Backed up');
+      restored.db.close();
+    } finally {
+      fs.rmSync(dir, { recursive: true, force: true });
+    }
+  });
+});

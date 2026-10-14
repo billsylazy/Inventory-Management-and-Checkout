@@ -1,3 +1,7 @@
+import crypto from 'node:crypto';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
 import express from 'express';
 import { requireAdmin } from '../auth.js';
 import { SETTINGS, updateSettings } from '../settings.js';
@@ -19,6 +23,18 @@ export function settingsRoutes(ctx) {
 
   router.patch('/settings', requireAdmin, (req, res) => {
     res.json({ settings: updateSettings(db, req.body ?? {}) });
+  });
+
+  // Download a consistent copy of the whole database (items, loans, people,
+  // history). Photos and signatures are separate files in the uploads folder.
+  router.get('/backup', requireAdmin, (_req, res, next) => {
+    const file = path.join(os.tmpdir(), `inventory-backup-${crypto.randomBytes(8).toString('hex')}.db`);
+    db.prepare('VACUUM INTO ?').run(file);
+    const stamp = ctx.now().toISOString().slice(0, 10);
+    res.download(file, `inventory-backup-${stamp}.db`, (err) => {
+      fs.rm(file, { force: true }, () => {});
+      if (err && !res.headersSent) next(err);
+    });
   });
 
   router.post('/categories', requireAdmin, (req, res) => {

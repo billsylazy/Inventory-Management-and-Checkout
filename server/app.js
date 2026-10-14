@@ -75,6 +75,12 @@ export function createApp(ctx, { trustProxy = 'loopback' } = {}) {
     next();
   });
 
+  // Health check for hosting platforms (Render, Docker...): no sign-in needed.
+  app.get('/healthz', (_req, res) => {
+    ctx.db.get('SELECT 1 AS ok');
+    res.set('Cache-Control', 'no-store').type('text/plain').send('ok');
+  });
+
   // API responses hold private, fast-changing data: never cache them
   // (shared Chromebooks in particular).
   app.use('/api', (_req, res, next) => {

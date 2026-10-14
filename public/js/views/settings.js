@@ -105,6 +105,10 @@ export async function settingsView({ app }) {
       GROUPS.map((g) => h('section', { class: 'card stack' }, h('h2', null, g.title), g.keys.filter((k) => byKey[k]).map((k) => control(byKey[k])))),
       h('div', null, save),
       h('section', { class: 'card stack' },
+        h('h2', null, 'Backup'),
+        h('p', { class: 'small muted' }, 'Download a copy of everything — items, kits, people, loans, bookings and history — as one database file. Keep it somewhere safe; do this regularly if the app runs on a website.'),
+        h('div', null, h('a', { class: 'btn', href: '/api/backup', download: '' }, icon('download'), h('span', null, 'Download backup')))),
+      h('section', { class: 'card stack' },
         h('h2', null, 'Categories'),
         h('p', { class: 'small muted' }, '“Main items” (camera bodies, camcorders…) get compatible accessory suggestions. Accessories are what gets suggested.'),
         categoriesBox)));

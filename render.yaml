@@ -1,0 +1,30 @@
+# Render Blueprint — one-click hosting on https://render.com
+#
+# In the Render dashboard choose New > Blueprint, connect this GitHub
+# repository, and Render creates the web service below with a persistent disk
+# for the database and photos. It asks you for ADMIN_PASSWORD: that becomes the
+# password of the first account, "admin".
+#
+# A persistent disk needs a paid instance ("starter"). See README.md for a free
+# demo setup instead.
+services:
+  - type: web
+    name: equipment-checkout
+    runtime: node
+    plan: starter
+    buildCommand: npm ci --omit=dev
+    startCommand: npm start
+    healthCheckPath: /healthz
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: DATA_DIR
+        value: /var/data
+      - key: TRUST_PROXY
+        value: "1"
+      - key: ADMIN_PASSWORD
+        sync: false
+    disk:
+      name: inventory-data
+      mountPath: /var/data
+      sizeGB: 1

@@ -316,7 +316,10 @@ export function openModal({ title, body, actions = [], onClose, wide = false }) 
   // typing somewhere in the dialog.
   setTimeout(() => {
     if (modal.contains(document.activeElement)) return;
-    (modal.querySelector('input, select, textarea') ?? modal.querySelector('.modal-actions .btn-primary'))?.focus();
+    const first = modal.querySelector('input, select, textarea') ?? modal.querySelector('.modal-actions .btn-primary');
+    // The dialog itself was just opened by a click, so whatever had focus
+    // before (usually the button that opened it) is fair to move away from.
+    if (first && !modal.contains(document.activeElement)) first.focus();
   }, 30);
   return { close, modal };
 }
@@ -354,6 +357,16 @@ export function feedback(ok = true) {
     // Audio is a nicety; ignore browsers that block it.
   }
   navigator.vibrate?.(ok ? 40 : [60, 40, 60]);
+}
+
+/**
+ * Focuses `el` only if the user isn't already in another field. Delayed
+ * autofocus must never pull the cursor away from someone (or a barcode
+ * scanner) who has started typing elsewhere.
+ */
+export function focusIfIdle(el, { within } = {}) {
+  const active = document.activeElement;
+  if (!active || active === document.body || active === el || (within && within.contains(active))) el.focus();
 }
 
 export function debounce(fn, ms = 250) {

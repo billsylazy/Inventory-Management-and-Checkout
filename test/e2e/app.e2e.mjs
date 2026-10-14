@@ -67,6 +67,24 @@ describe('media lab app in a real browser', () => {
     await context.close();
   });
 
+  test('autofocus never pulls the cursor away from someone already typing', T, async () => {
+    const context = await browser.newContext();
+    const page = await context.newPage();
+    // Freeze the page's timers so the delayed autofocus fires exactly when we say.
+    const t0 = new Date();
+    await page.clock.install({ time: t0 });
+    await page.clock.pauseAt(new Date(t0.getTime() + 1000));
+    await page.goto(`${base}/`);
+    await page.waitForSelector('input[name=password]');
+    await page.locator('input[name=password]').focus();
+    await page.keyboard.type('demo1234');
+    await page.clock.runFor(500);
+    assert.equal(await page.evaluate(() => document.activeElement.name), 'password');
+    assert.equal(await page.inputValue('input[name=username]'), '');
+    assert.equal(await page.inputValue('input[name=password]'), 'demo1234');
+    await context.close();
+  });
+
   test('equipment grid: counts, status/category filters, search, kits tab', T, async () => {
     await go(teacher, base, '#/');
     assert.match(await view(teacher).locator('.page-header .sub').innerText(), /46 items in inventory/);

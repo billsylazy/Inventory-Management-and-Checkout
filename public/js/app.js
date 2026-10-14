@@ -1,7 +1,7 @@
 import { api, setUnauthorizedHandler } from './api.js';
 import { closeActiveScanner } from './scanner.js';
 import {
-  banner, btn, clear, field, h, icon, initials, loading, openModal, toast,
+  banner, btn, clear, field, focusIfIdle, h, icon, initials, loading, openModal, toast,
 } from './ui.js';
 import { accountView } from './views/account.js';
 import { assetFormView, assetView } from './views/asset.js';
@@ -269,7 +269,7 @@ function renderLogin(message) {
       h('div', { class: 'brand' }, h('span', { class: 'brand-mark' }, icon('camera')), 'Equipment Checkout'),
       form,
       h('p', { class: 'small muted', style: { marginTop: '16px', textAlign: 'center' } }, 'Forgot your password? Ask your teacher to reset it.'))));
-  setTimeout(() => username.focus(), 30);
+  setTimeout(() => focusIfIdle(username), 30);
 }
 
 async function logout() {

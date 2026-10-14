@@ -8,7 +8,9 @@ import { createApp, createContext, ensureAdmin } from './app.js';
 import { seedDemo } from './demo.js';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const demo = process.argv.includes('--demo');
+// DEMO=1 (or --demo) loads sample data into an empty database, e.g. for a
+// free demo website whose storage is wiped on every restart.
+const demo = process.argv.includes('--demo') || process.env.DEMO === '1';
 const env = process.env;
 
 const dataDir = path.resolve(env.DATA_DIR ?? path.join(ROOT, 'data'));
